@@ -41,7 +41,7 @@ public class CreadorServicioImpl implements CreadorServicio {
         repositorio.deleteById(id);
     }
 
-    // 🆕 NUEVOS MÉTODOS IMPLEMENTADOS: Para filtros
+    // 🔧 CORREGIDOS: Métodos de filtro para PostgreSQL
     @Override
     public List<Creador> filtrarPorRol(String rol) {
         if (rol == null || rol.trim().isEmpty()) {
@@ -83,13 +83,52 @@ public class CreadorServicioImpl implements CreadorServicio {
         return repositorio.findByNombreCompletoContainingIgnoreCase(nombre.trim());
     }
 
+    // 🆕 NUEVA IMPLEMENTACIÓN: Lógica mejorada para filtros combinados sin problemas de NULL
     @Override
     public List<Creador> filtrarConCriteriosCombinados(String rol, Long proyectoId, String nombre) {
-        // Convertir valores vacíos a null para la consulta
-        String rolFiltro = (rol != null && !rol.trim().isEmpty()) ? rol.trim() : null;
-        String nombreFiltro = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
+        // Normalizar parámetros
+        boolean tieneRol = rol != null && !rol.trim().isEmpty();
+        boolean tieneProyecto = proyectoId != null;
+        boolean tieneNombre = nombre != null && !nombre.trim().isEmpty();
         
-        return repositorio.findByFiltrosCombinados(rolFiltro, proyectoId, nombreFiltro);
+        // Si no hay filtros, devolver todos
+        if (!tieneRol && !tieneProyecto && !tieneNombre) {
+            return listarTodosLosCreadores();
+        }
+        
+        // Filtros individuales
+        if (tieneRol && !tieneProyecto && !tieneNombre) {
+            return repositorio.findByRolOnly(rol.trim());
+        }
+        
+        if (!tieneRol && tieneProyecto && !tieneNombre) {
+            return repositorio.findByProyectoOnly(proyectoId);
+        }
+        
+        if (!tieneRol && !tieneProyecto && tieneNombre) {
+            return repositorio.findByNombreOnly(nombre.trim());
+        }
+        
+        // Filtros combinados de dos
+        if (tieneRol && tieneProyecto && !tieneNombre) {
+            return repositorio.findByRolAndProyecto(rol.trim(), proyectoId);
+        }
+        
+        if (tieneRol && !tieneProyecto && tieneNombre) {
+            return repositorio.findByRolAndNombre(rol.trim(), nombre.trim());
+        }
+        
+        if (!tieneRol && tieneProyecto && tieneNombre) {
+            return repositorio.findByProyectoAndNombre(proyectoId, nombre.trim());
+        }
+        
+        // Filtro completo (todos los tres)
+        if (tieneRol && tieneProyecto && tieneNombre) {
+            return repositorio.findByRolAndProyectoAndNombre(rol.trim(), proyectoId, nombre.trim());
+        }
+        
+        // Fallback (no debería llegar aquí)
+        return listarTodosLosCreadores();
     }
 
     @Override
