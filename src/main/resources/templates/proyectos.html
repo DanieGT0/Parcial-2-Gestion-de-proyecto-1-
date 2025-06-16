@@ -1,272 +1,179 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Proyectos - ProjectHub</title>
-  <!-- Bootstrap 5.3 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Gestión de Proyectos - UES</title>
+  
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome 6 -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     :root {
-      /* Colores modernos y profesionales */
       --primary: #6366f1;
       --primary-dark: #4f46e5;
-      --primary-light: #a5b4fc;
-      --secondary: #1f2937;
+      --secondary: #8b5cf6;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
       --info: #3b82f6;
-      
-      /* Grises */
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
       --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
       --gray-500: #6b7280;
       --gray-600: #4b5563;
       --gray-700: #374151;
       --gray-800: #1f2937;
       --gray-900: #111827;
-      
-      /* Sombras */
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      
-      --border-radius: 12px;
-      --border-radius-lg: 16px;
     }
-    
+
     body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, var(--gray-50) 0%, #ffffff 100%);
-      color: var(--gray-900);
-      line-height: 1.6;
     }
-    
-    /* Header moderno */
-    .modern-header {
+
+    /* Header styling */
+    .navbar {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--gray-200);
-      box-shadow: var(--shadow-sm);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
-    
+
     .navbar-brand {
-      font-weight: 800;
-      font-size: 1.5rem;
+      font-weight: 700;
       color: var(--primary) !important;
+      font-size: 1.5rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .brand-icon {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
       width: 40px;
       height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
+      color: white;
       font-size: 1.2rem;
     }
-    
-    .nav-link {
-      color: var(--gray-600) !important;
-      font-weight: 500;
-      padding: 0.5rem 1rem !important;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-    
-    .nav-link:hover, .nav-link.active {
-      color: var(--primary) !important;
-      background: rgba(99, 102, 241, 0.1);
-    }
-    
-    /* Contenedor principal */
+
+    /* Main container */
     .main-container {
+      padding: 2rem;
       max-width: 1400px;
       margin: 0 auto;
-      padding: 2rem 1rem;
     }
-    
-    /* Header de página */
+
+    /* Page header */
     .page-header {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      border-radius: var(--border-radius-lg);
-      padding: 3rem 2rem;
-      margin-bottom: 3rem;
-      position: relative;
-      overflow: hidden;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    
-    .page-header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -10%;
-      width: 200px;
-      height: 200px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      z-index: 1;
-    }
-    
+
     .page-header-content {
-      position: relative;
-      z-index: 2;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 1rem;
     }
-    
+
     .page-title {
       font-size: 2.5rem;
       font-weight: 800;
+      color: var(--gray-800);
       margin: 0;
       display: flex;
       align-items: center;
       gap: 1rem;
     }
-    
+
     .page-subtitle {
-      font-size: 1.1rem;
-      opacity: 0.9;
-      font-weight: 400;
+      color: var(--gray-600);
       margin: 0.5rem 0 0 0;
+      font-size: 1.1rem;
     }
-    
-    /* Botones modernos */
-    .btn-modern {
-      padding: 0.75rem 1.5rem;
-      border-radius: var(--border-radius);
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      box-shadow: var(--shadow-md);
-    }
-    
-    .btn-primary-modern {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-    }
-    
-    .btn-primary-modern:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-      color: white;
-    }
-    
-    .btn-white-modern {
-      background: white;
-      color: var(--primary);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .btn-white-modern:hover {
-      background: var(--gray-50);
-      transform: translateY(-2px);
-      color: var(--primary-dark);
-    }
-    
-    /* Filtros y búsqueda */
+
+    /* Filters section */
     .filters-section {
-      background: white;
-      border-radius: var(--border-radius-lg);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
       padding: 1.5rem;
       margin-bottom: 2rem;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--gray-200);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
-    
+
     .search-box {
       position: relative;
       flex: 1;
       max-width: 400px;
     }
-    
+
     .search-input {
       width: 100%;
       padding: 0.75rem 1rem 0.75rem 3rem;
       border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      font-size: 0.95rem;
+      border-radius: 12px;
+      font-size: 1rem;
       transition: all 0.3s ease;
+      background: white;
     }
-    
+
     .search-input:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     }
-    
+
     .search-icon {
       position: absolute;
       left: 1rem;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--gray-500);
+      color: var(--gray-400);
     }
-    
-    /* Grid de proyectos */
+
+    /* Projects grid */
     .projects-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
     }
-    
+
     .project-card {
       background: white;
-      border-radius: var(--border-radius-lg);
-      border: 1px solid var(--gray-200);
-      box-shadow: var(--shadow-md);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 16px;
       overflow: hidden;
-      position: relative;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    
-    .project-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--success));
-    }
-    
+
     .project-card:hover {
-      transform: translateY(-8px);
-      box-shadow: var(--shadow-xl);
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
-    
+
     .project-header {
       padding: 1.5rem 1.5rem 1rem;
     }
-    
+
     .project-title {
       font-size: 1.25rem;
       font-weight: 700;
@@ -276,7 +183,7 @@
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .project-icon {
       width: 40px;
       height: 40px;
@@ -288,22 +195,22 @@
       color: white;
       font-size: 1.1rem;
     }
-    
+
     .project-description {
       color: var(--gray-600);
       line-height: 1.6;
       margin-bottom: 1rem;
       display: -webkit-box;
-      
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    
+
     .project-meta {
       padding: 0 1.5rem 1rem;
       border-bottom: 1px solid var(--gray-100);
     }
-    
+
     .meta-item {
       display: flex;
       align-items: center;
@@ -312,24 +219,24 @@
       font-size: 0.9rem;
       color: var(--gray-600);
     }
-    
+
     .meta-icon {
       color: var(--primary);
       width: 16px;
     }
-    
+
     .project-tech {
       padding: 1rem 1.5rem;
       background: var(--gray-50);
     }
-    
+
     .tech-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       margin-bottom: 1rem;
     }
-    
+
     .tech-tag {
       background: var(--primary);
       color: white;
@@ -338,15 +245,17 @@
       font-size: 0.8rem;
       font-weight: 500;
     }
-    
+
+    /* 🆕 NUEVOS ESTILOS: Botones de acciones */
     .project-actions {
       padding: 1.5rem;
       background: white;
       display: flex;
       gap: 0.75rem;
       justify-content: space-between;
+      flex-wrap: wrap;
     }
-    
+
     .btn-action {
       padding: 0.5rem 1rem;
       border-radius: 8px;
@@ -361,116 +270,201 @@
       text-decoration: none;
       flex: 1;
       justify-content: center;
+      min-width: 100px;
     }
-    
+
     .btn-edit {
       background: var(--info);
       color: white;
     }
-    
+
     .btn-edit:hover {
       background: #2563eb;
       transform: translateY(-1px);
       color: white;
     }
-    
+
     .btn-delete {
       background: var(--danger);
       color: white;
     }
-    
+
     .btn-delete:hover {
       background: #dc2626;
       transform: translateY(-1px);
       color: white;
     }
-    
-    .btn-github {
-      background: var(--gray-800);
+
+    /* 🆕 NUEVO: Botón Ver Equipo */
+    .btn-team {
+      background: var(--success);
       color: white;
     }
-    
-    .btn-github:hover {
-      background: var(--gray-900);
+
+    .btn-team:hover {
+      background: #059669;
       transform: translateY(-1px);
       color: white;
     }
-    
-    /* Estado vacío */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      background: white;
-      border-radius: var(--border-radius-lg);
-      border: 2px dashed var(--gray-300);
-    }
-    
-    .empty-icon {
-      font-size: 4rem;
-      color: var(--gray-400);
-      margin-bottom: 1rem;
-    }
-    
-    .empty-title {
-      font-size: 1.5rem;
+
+    /* Modern buttons */
+    .btn-modern {
+      padding: 0.75rem 2rem;
+      border-radius: 12px;
       font-weight: 600;
-      color: var(--gray-700);
-      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
     }
-    
-    .empty-description {
+
+    .btn-white-modern {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-white-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      color: var(--primary);
+    }
+
+    /* 🆕 NUEVOS ESTILOS: Modal para mostrar equipo */
+    .modal-content {
+      border-radius: 16px;
+      border: none;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-radius: 16px 16px 0 0;
+      padding: 1.5rem;
+    }
+
+    .modal-title {
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+
+    .btn-close {
+      filter: brightness(0) invert(1);
+    }
+
+    .team-member {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-100);
+      transition: background 0.3s ease;
+    }
+
+    .team-member:hover {
+      background: var(--gray-50);
+    }
+
+    .team-member:last-child {
+      border-bottom: none;
+    }
+
+    .member-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-right: 1rem;
+    }
+
+    .member-info {
+      flex: 1;
+    }
+
+    .member-name {
+      font-weight: 600;
+      color: var(--gray-900);
+      margin: 0 0 0.25rem 0;
+    }
+
+    .member-role {
+      color: var(--gray-600);
+      font-size: 0.9rem;
+      margin: 0 0 0.25rem 0;
+    }
+
+    .member-contact {
       color: var(--gray-500);
-      margin-bottom: 2rem;
+      font-size: 0.8rem;
     }
-    
+
+    .empty-team {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gray-500);
+    }
+
+    .empty-team i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Loading spinner */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--gray-300);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
-      .projects-grid {
-        grid-template-columns: 1fr;
+      .main-container {
+        padding: 1rem;
       }
       
       .page-header-content {
-        text-align: center;
+        flex-direction: column;
+        align-items: stretch;
       }
       
-      .page-title {
-        font-size: 2rem;
-      }
-      
-      .main-container {
-        padding: 1rem;
+      .projects-grid {
+        grid-template-columns: 1fr;
       }
       
       .project-actions {
         flex-direction: column;
       }
-    }
-    
-    /* Animaciones */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      
+      .btn-action {
+        flex: none;
       }
     }
-    
-    .project-card {
-      animation: fadeInUp 0.6s ease-out;
-    }
-    
-    .project-card:nth-child(odd) { animation-delay: 0.1s; }
-    .project-card:nth-child(even) { animation-delay: 0.2s; }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="modern-header">
+  <!-- Navigation -->
+  <header>
     <nav class="navbar navbar-expand-lg">
-      <div class="container">
+      <div class="container-fluid">
         <a class="navbar-brand" href="/dashboard">
           <div class="brand-icon">
             <i class="fas fa-rocket"></i>
@@ -546,20 +540,9 @@
     </div>
 
     <!-- Grid de proyectos -->
-    <div class="projects-grid" id="projectsGrid">
-      <!-- Verificar si hay proyectos -->
-      <div th:if="${proyectos.empty}" class="empty-state" style="grid-column: 1 / -1;">
-        <i class="fas fa-folder-open empty-icon"></i>
-        <h3 class="empty-title">No hay proyectos</h3>
-        <p class="empty-description">Comienza creando tu primer proyecto para ver la magia acontecer</p>
-        <a th:href="@{/proyectos/nuevo}" class="btn-modern btn-primary-modern">
-          <i class="fas fa-plus"></i>
-          Crear Primer Proyecto
-        </a>
-      </div>
-
-      <!-- Lista de proyectos -->
-      <div th:each="proyecto : ${proyectos}" class="project-card" th:attr="data-tech=${proyecto.tecnologias}">
+    <div class="projects-grid">
+      <div th:each="proyecto : ${proyectos}" class="project-card" th:data-tech="${proyecto.tecnologias}">
+        <!-- Header del proyecto -->
         <div class="project-header">
           <h3 class="project-title">
             <div class="project-icon">
@@ -568,99 +551,272 @@
             <span th:text="${proyecto.titulo}">Título del Proyecto</span>
           </h3>
           <p class="project-description" th:text="${proyecto.descripcion}">
-            Descripción del proyecto...
+            Descripción del proyecto aquí...
           </p>
         </div>
 
+        <!-- Meta información -->
         <div class="project-meta">
           <div class="meta-item">
-            <i class="fas fa-calendar-alt meta-icon"></i>
-            <span th:text="${#temporals.format(proyecto.fechaPublicacion, 'dd/MM/yyyy')}">01/01/2024</span>
+            <i class="fas fa-calendar meta-icon"></i>
+            <span th:text="'Publicado: ' + ${#temporals.format(proyecto.fechaPublicacion, 'dd/MM/yyyy')}">
+              Fecha de publicación
+            </span>
           </div>
           <div class="meta-item" th:if="${proyecto.enlaceGithub}">
             <i class="fab fa-github meta-icon"></i>
-            <span>Repositorio disponible</span>
+            <a th:href="${proyecto.enlaceGithub}" target="_blank" class="text-decoration-none">
+              Ver en GitHub
+            </a>
           </div>
         </div>
 
+        <!-- Tecnologías -->
         <div class="project-tech">
-          <div class="tech-tags">
-            <span th:each="tech, iterStat : ${#strings.arraySplit(proyecto.tecnologias, ',')}" 
-                  class="tech-tag" th:text="${#strings.trim(tech)}">Tech</span>
+          <div class="tech-tags" th:if="${proyecto.tecnologias}">
+            <span th:each="tech : ${#strings.arraySplit(proyecto.tecnologias, ',')}" 
+                  class="tech-tag" th:text="${#strings.trim(tech)}">
+              Tecnología
+            </span>
           </div>
         </div>
 
+        <!-- 🆕 MODIFICADO: Acciones del proyecto (incluyendo Ver Equipo) -->
         <div class="project-actions">
-          <a th:href="@{/proyectos/editar/{id}(id=${proyecto.id})}" class="btn-action btn-edit">
+          <!-- Botón Ver Equipo -->
+          <button class="btn-action btn-team" 
+                  th:onclick="'verEquipoProyecto(' + ${proyecto.id} + ')'"
+                  title="Ver equipo del proyecto">
+            <i class="fas fa-users"></i>
+            <span>Ver Equipo</span>
+          </button>
+          
+          <!-- Botón Editar -->
+          <a th:href="@{/proyectos/editar/{id}(id=${proyecto.id})}" 
+             class="btn-action btn-edit"
+             title="Editar proyecto">
             <i class="fas fa-edit"></i>
-            Editar
+            <span>Editar</span>
           </a>
-          <a th:href="@{/proyectos/{id}(id=${proyecto.id})}" class="btn-action btn-delete" 
-             onclick="return confirm('¿Estás seguro de eliminar este proyecto?')">
+          
+          <!-- Botón Eliminar -->
+          <a th:href="@{/proyectos/{id}(id=${proyecto.id})}" 
+             class="btn-action btn-delete"
+             title="Eliminar proyecto"
+             onclick="return confirm('¿Estás seguro de que deseas eliminar este proyecto?')">
             <i class="fas fa-trash"></i>
-            Eliminar
-          </a>
-          <a th:if="${proyecto.enlaceGithub != null and proyecto.enlaceGithub != ''}"
-             th:href="${proyecto.enlaceGithub}" target="_blank" class="btn-action btn-github">
-            <i class="fab fa-github"></i>
-            GitHub
+            <span>Eliminar</span>
           </a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- 🆕 NUEVO: Modal para mostrar equipo del proyecto -->
+  <div class="modal fade" id="equipoModal" tabindex="-1" aria-labelledby="equipoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="equipoModalLabel">
+            <i class="fas fa-users me-2"></i>
+            Equipo del Proyecto
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="equipoModalBody">
+          <!-- Contenido del equipo se carga aquí dinámicamente -->
+          <div class="text-center">
+            <div class="loading-spinner"></div>
+            <p class="mt-2">Cargando equipo del proyecto...</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- 🆕 NUEVO: JavaScript para funcionalidad del modal de equipo -->
   <script>
-    // Funcionalidad de búsqueda
-    document.getElementById('searchInput').addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
-      const projects = document.querySelectorAll('.project-card');
-      
-      projects.forEach(project => {
-        const title = project.querySelector('.project-title span').textContent.toLowerCase();
-        const description = project.querySelector('.project-description').textContent.toLowerCase();
+    // 🆕 Función para ver equipo del proyecto
+    async function verEquipoProyecto(proyectoId) {
+      try {
+        // Mostrar modal con loading
+        const modal = new bootstrap.Modal(document.getElementById('equipoModal'));
+        const modalBody = document.getElementById('equipoModalBody');
         
-        if (title.includes(searchTerm) || description.includes(searchTerm)) {
-          project.style.display = 'block';
+        // Resetear contenido y mostrar loading
+        modalBody.innerHTML = `
+          <div class="text-center">
+            <div class="loading-spinner"></div>
+            <p class="mt-2">Cargando equipo del proyecto...</p>
+          </div>
+        `;
+        
+        modal.show();
+        
+        // Hacer petición AJAX
+        const response = await fetch(`/proyectos/${proyectoId}/equipo`);
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Actualizar título del modal
+        document.getElementById('equipoModalLabel').innerHTML = `
+          <i class="fas fa-users me-2"></i>
+          Equipo: ${data.proyecto}
+        `;
+        
+        // Construir contenido del modal
+        let equipoHtml = '';
+        
+        // Información del proyecto
+        equipoHtml += `
+          <div class="project-info mb-4 p-3 bg-light rounded">
+            <h6 class="fw-bold text-primary mb-2">
+              <i class="fas fa-info-circle me-1"></i>
+              Información del Proyecto
+            </h6>
+            <p class="mb-1"><strong>Proyecto:</strong> ${data.proyecto}</p>
+            <p class="mb-1"><strong>Descripción:</strong> ${data.descripcion}</p>
+            ${data.tecnologias ? `<p class="mb-1"><strong>Tecnologías:</strong> ${data.tecnologias}</p>` : ''}
+            ${data.fechaPublicacion ? `<p class="mb-1"><strong>Fecha:</strong> ${formatearFecha(data.fechaPublicacion)}</p>` : ''}
+            <p class="mb-0"><strong>Total de miembros:</strong> <span class="badge bg-primary">${data.totalMiembros}</span></p>
+          </div>
+        `;
+        
+        // Lista del equipo
+        if (data.equipo && data.equipo.length > 0) {
+          equipoHtml += `
+            <h6 class="fw-bold mb-3">
+              <i class="fas fa-user-friends me-1"></i>
+              Miembros del Equipo (${data.totalMiembros})
+            </h6>
+            <div class="team-list">
+          `;
+          
+          data.equipo.forEach(miembro => {
+            equipoHtml += `
+              <div class="team-member">
+                <div class="member-avatar">
+                  ${miembro.iniciales}
+                </div>
+                <div class="member-info">
+                  <h6 class="member-name">${miembro.nombreCompleto}</h6>
+                  <p class="member-role">
+                    <i class="fas fa-user-tag me-1"></i>
+                    ${miembro.rol}
+                  </p>
+                  <div class="member-contact">
+                    <i class="fas fa-envelope me-1"></i>
+                    ${miembro.correo}
+                    ${miembro.telefono ? `<span class="ms-2"><i class="fas fa-phone me-1"></i>${miembro.telefono}</span>` : ''}
+                  </div>
+                  ${miembro.fechaVinculacion ? `
+                    <small class="text-muted">
+                      <i class="fas fa-calendar-plus me-1"></i>
+                      Vinculado: ${formatearFecha(miembro.fechaVinculacion)}
+                    </small>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          });
+          
+          equipoHtml += '</div>';
         } else {
-          project.style.display = 'none';
+          equipoHtml += `
+            <div class="empty-team">
+              <i class="fas fa-user-slash"></i>
+              <h6>No hay miembros asignados</h6>
+              <p class="text-muted">Este proyecto aún no tiene miembros del equipo asignados.</p>
+            </div>
+          `;
+        }
+        
+        // Actualizar contenido del modal
+        modalBody.innerHTML = equipoHtml;
+        
+      } catch (error) {
+        console.error('Error al cargar equipo del proyecto:', error);
+        
+        // Mostrar error en el modal
+        document.getElementById('equipoModalBody').innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> No se pudo cargar el equipo del proyecto.
+            <br><small>${error.message}</small>
+          </div>
+        `;
+      }
+    }
+    
+    // Función auxiliar para formatear fechas
+    function formatearFecha(fechaString) {
+      if (!fechaString) return '';
+      
+      try {
+        const fecha = new Date(fechaString);
+        return fecha.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      } catch (e) {
+        return fechaString;
+      }
+    }
+
+    // 🔍 Funcionalidad de búsqueda (ya existente)
+    document.getElementById('searchInput').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const projectCards = document.querySelectorAll('.project-card');
+      
+      projectCards.forEach(card => {
+        const title = card.querySelector('.project-title span').textContent.toLowerCase();
+        const description = card.querySelector('.project-description').textContent.toLowerCase();
+        const tech = card.getAttribute('data-tech')?.toLowerCase() || '';
+        
+        if (title.includes(searchTerm) || description.includes(searchTerm) || tech.includes(searchTerm)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
         }
       });
     });
 
-    // Filtros por tecnología
+    // 🔍 Funcionalidad de filtros por tecnología (ya existente)
     function filterByTech(tech) {
-      const projects = document.querySelectorAll('.project-card');
-      const buttons = document.querySelectorAll('[id^="filter"]');
+      const projectCards = document.querySelectorAll('.project-card');
+      const filterButtons = document.querySelectorAll('[id^="filter"]');
       
-      // Resetear botones
-      buttons.forEach(btn => btn.classList.remove('btn-primary'));
-      buttons.forEach(btn => btn.classList.add('btn-outline-primary'));
+      // Actualizar botones activos
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      document.getElementById('filter' + tech.charAt(0).toUpperCase() + tech.slice(1)).classList.add('active');
       
-      // Activar botón seleccionado
-      document.getElementById('filter' + tech.charAt(0).toUpperCase() + tech.slice(1)).classList.remove('btn-outline-primary');
-      document.getElementById('filter' + tech.charAt(0).toUpperCase() + tech.slice(1)).classList.add('btn-primary');
-      
-      projects.forEach(project => {
-        if (tech === 'all') {
-          project.style.display = 'block';
+      projectCards.forEach(card => {
+        const cardTech = card.getAttribute('data-tech')?.toLowerCase() || '';
+        
+        if (tech === 'all' || cardTech.includes(tech.toLowerCase())) {
+          card.style.display = 'block';
         } else {
-          const projectTech = project.getAttribute('data-tech').toLowerCase();
-          if (projectTech.includes(tech.toLowerCase())) {
-            project.style.display = 'block';
-          } else {
-            project.style.display = 'none';
-          }
+          card.style.display = 'none';
         }
       });
     }
 
-    // Activar filtro "Todos" por defecto
+    // Inicializar filtro "Todos" como activo
     document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('filterAll').classList.remove('btn-outline-primary');
-      document.getElementById('filterAll').classList.add('btn-primary');
+      document.getElementById('filterAll').classList.add('active');
     });
   </script>
 </body>
