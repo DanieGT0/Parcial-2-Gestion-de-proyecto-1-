@@ -75,7 +75,7 @@
 			<version>4.0.0</version>
 		</dependency>
 		
-		<!-- 🔧 CORREGIDO: Dependencias para PDF - iText 7 -->
+		<!-- 📄 DEPENDENCIAS PARA PDF - iText 8 -->
 		<dependency>
 			<groupId>com.itextpdf</groupId>
 			<artifactId>itext-core</artifactId>
@@ -101,7 +101,7 @@
 			<version>8.0.2</version>
 		</dependency>
 		
-		<!-- 🔧 CORREGIDO: Dependencias para Excel - Apache POI -->
+		<!-- 📊 DEPENDENCIAS PARA EXCEL - Apache POI (COMPLETAS) -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -112,6 +112,31 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>5.2.4</version>
+		</dependency>
+		
+		<!-- 🆕 DEPENDENCIAS CRÍTICAS PARA POI -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml-schemas</artifactId>
+			<version>4.1.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.24.0</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.4</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.xmlbeans</groupId>
+			<artifactId>xmlbeans</artifactId>
+			<version>5.1.1</version>
 		</dependency>
 		
 		<!-- Spring Boot DevTools -->
