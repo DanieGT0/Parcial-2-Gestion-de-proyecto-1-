@@ -17,7 +17,8 @@ import org.springframework.stereotype.Service;
 
 import com.app.web.entidad.Creador;
 import com.app.web.entidad.Proyecto;
-import com.itextpdf.html2pdf.HtmlConverter;
+
+// 🔧 IMPORTACIONES CORREGIDAS PARA iTEXT 8
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -417,7 +418,7 @@ public class ReporteServicioImpl implements ReporteServicio {
         return baos.toByteArray();
     }
 
-    // 📊 REPORTE DE PROYECTO CON SU EQUIPO (PDF)
+   // 📊 REPORTE DE PROYECTO CON SU EQUIPO (PDF)
     @Override
     public byte[] generarReporteProyectoConEquipoPdf(Long proyectoId) throws Exception {
         Proyecto proyecto = proyectoServicio.obtenerProyectoPorId(proyectoId);
@@ -450,6 +451,9 @@ public class ReporteServicioImpl implements ReporteServicio {
         document.add(new Paragraph("\n"));
 
         // Información del proyecto
+        Paragraph infoTitle = new Paragraph("📋 INFORMACIÓN DEL PROYECTO")
+                .setFontSize(14)
+                .setBold();
         document.add(infoTitle);
 
         document.add(new Paragraph("• ID: " + proyecto.getId()));
