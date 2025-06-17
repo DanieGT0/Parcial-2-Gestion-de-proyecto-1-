@@ -75,20 +75,33 @@
 			<version>4.0.0</version>
 		</dependency>
 		
-		<!-- 🆕 NUEVAS DEPENDENCIAS: Para generación de reportes PDF -->
+		<!-- 🔧 CORREGIDO: Dependencias para PDF - iText 7 -->
 		<dependency>
 			<groupId>com.itextpdf</groupId>
-			<artifactId>itext7-core</artifactId>
-			<version>7.2.5</version>
+			<artifactId>itext-core</artifactId>
+			<version>8.0.2</version>
+			<type>pom</type>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.itextpdf</groupId>
-			<artifactId>html2pdf</artifactId>
-			<version>4.0.5</version>
+			<artifactId>kernel</artifactId>
+			<version>8.0.2</version>
 		</dependency>
 		
-		<!-- 🆕 NUEVAS DEPENDENCIAS: Para generación de reportes Excel -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>layout</artifactId>
+			<version>8.0.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>io</artifactId>
+			<version>8.0.2</version>
+		</dependency>
+		
+		<!-- 🔧 CORREGIDO: Dependencias para Excel - Apache POI -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -99,12 +112,6 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>5.2.4</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml-schemas</artifactId>
-			<version>4.1.2</version>
 		</dependency>
 		
 		<!-- Spring Boot DevTools -->
