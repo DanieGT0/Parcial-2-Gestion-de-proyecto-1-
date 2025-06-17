@@ -14,12 +14,11 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-// ✅ iText - Solo para PDF (con alias para evitar conflictos)
+// ✅ iText - Solo para PDF
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Cell as PdfCell;  // 🔧 ALIAS PARA EVITAR CONFLICTO
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
@@ -49,7 +48,228 @@ public class ReporteServicioImpl implements ReporteServicio {
         Document document = new Document(pdf);
 
         // Título del reporte
-        Paragraph titulo = new Paragraph("📊 REPORTE DE PROYECTOS")
+        Paragraph titulo = new Paragraph("📊 REPORTE GENERAL DEL SISTEMA")
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontSize(18)
+                .setBold();
+        document.add(titulo);
+
+        // Fecha de generación
+        Paragraph fecha = new Paragraph("Fecha de generación: " + 
+                LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontSize(10);
+        document.add(fecha);
+
+        // Espacio
+        document.add(new Paragraph("\n"));
+
+        // Estadísticas generales
+        Paragraph estadisticas = new Paragraph("📈 ESTADÍSTICAS GENERALES")
+                .setFontSize(14)
+                .setBold();
+        document.add(estadisticas);
+
+        document.add(new Paragraph("• Total de proyectos: " + proyectos.size()));
+        document.add(new Paragraph("• Total de creadores: " + creadores.size()));
+
+        long totalMiembros = proyectos.stream()
+                .mapToLong(p -> p.getCreadores() != null ? p.getCreadores().size() : 0)
+                .sum();
+        document.add(new Paragraph("• Total de asignaciones: " + totalMiembros));
+
+        double promedio = proyectos.isEmpty() ? 0 : (double) totalMiembros / proyectos.size();
+        document.add(new Paragraph("• Promedio de miembros por proyecto: " + String.format("%.1f", promedio)));
+
+        // Espacio
+        document.add(new Paragraph("\n"));
+
+        // Distribución por roles
+        Map<String, Long> roleStats = creadores.stream()
+                .collect(Collectors.groupingBy(Creador::getRol, Collectors.counting()));
+
+        Paragraph rolesTitle = new Paragraph("👨‍💼 DISTRIBUCIÓN POR ROLES")
+                .setFontSize(14)
+                .setBold();
+        document.add(rolesTitle);
+
+        Table rolesTable = new Table(UnitValue.createPercentArray(new float[]{3, 1, 1}))
+                .setWidth(UnitValue.createPercentValue(100));
+
+        rolesTable.addHeaderCell(crearCeldaHeaderPdf("Rol"));
+        rolesTable.addHeaderCell(crearCeldaHeaderPdf("Cantidad"));
+        rolesTable.addHeaderCell(crearCeldaHeaderPdf("Porcentaje"));
+
+        for (Map.Entry<String, Long> entry : roleStats.entrySet()) {
+            rolesTable.addCell(entry.getKey());
+            rolesTable.addCell(entry.getValue().toString());
+            double percentage = (entry.getValue() * 100.0) / creadores.size();
+            rolesTable.addCell(String.format("%.1f%%", percentage));
+        }
+
+        document.add(rolesTable);
+        document.close();
+
+        return baos.toByteArray();
+    }
+
+    // 📊 REPORTE GENERAL (EXCEL)
+    @Override
+    public byte[] generarReporteGeneralExcel() throws Exception {
+        List<Proyecto> proyectos = proyectoServicio.listarTodos();
+        List<Creador> creadores = creadorServicio.listarTodos();
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Reporte General");
+
+        CellStyle headerStyle = crearEstiloHeader(workbook);
+        CellStyle dataStyle = crearEstiloData(workbook);
+        CellStyle titleStyle = crearEstiloTitle(workbook);
+
+        int rowNum = 0;
+
+        // Título principal
+        Row titleRow = sheet.createRow(rowNum++);
+        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue("📊 REPORTE GENERAL DEL SISTEMA");
+        titleCell.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
+
+        // Fecha
+        Row fechaRow = sheet.createRow(rowNum++);
+        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0);
+        fechaCell.setCellValue("Fecha de generación: " + 
+                LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 4));
+
+        // Espacio
+        rowNum++;
+
+        // Estadísticas generales
+        Row generalHeaderRow = sheet.createRow(rowNum++);
+        org.apache.poi.ss.usermodel.Cell generalHeaderCell = generalHeaderRow.createCell(0);
+        generalHeaderCell.setCellValue("📈 ESTADÍSTICAS GENERALES");
+        generalHeaderCell.setCellStyle(headerStyle);
+        sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 4));
+
+        // Datos estadísticos
+        String[][] stats = {
+            {"Total de proyectos:", String.valueOf(proyectos.size())},
+            {"Total de creadores:", String.valueOf(creadores.size())},
+            {"Total de asignaciones:", String.valueOf(proyectos.stream()
+                    .mapToLong(p -> p.getCreadores() != null ? p.getCreadores().size() : 0).sum())},
+            {"Promedio miembros/proyecto:", String.format("%.1f", 
+                    proyectos.isEmpty() ? 0 : 
+                    (double) proyectos.stream()
+                            .mapToLong(p -> p.getCreadores() != null ? p.getCreadores().size() : 0)
+                            .sum() / proyectos.size())}
+        };
+
+        for (String[] stat : stats) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(stat[0]);
+            row.createCell(1).setCellValue(stat[1]);
+        }
+
+        // Espacio
+        rowNum++;
+
+        // Distribución por roles
+        Map<String, Long> roleStats = creadores.stream()
+                .collect(Collectors.groupingBy(Creador::getRol, Collectors.counting()));
+
+        Row rolesHeaderRow = sheet.createRow(rowNum++);
+        org.apache.poi.ss.usermodel.Cell rolesHeaderCell = rolesHeaderRow.createCell(0);
+        rolesHeaderCell.setCellValue("👨‍💼 DISTRIBUCIÓN POR ROLES");
+        rolesHeaderCell.setCellStyle(headerStyle);
+        sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 4));
+
+        // Headers de roles
+        Row roleHeaderRow = sheet.createRow(rowNum++);
+        String[] roleHeaders = {"Rol", "Cantidad", "Porcentaje"};
+        for (int i = 0; i < roleHeaders.length; i++) {
+            org.apache.poi.ss.usermodel.Cell cell = roleHeaderRow.createCell(i);
+            cell.setCellValue(roleHeaders[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        // Datos de roles
+        for (Map.Entry<String, Long> entry : roleStats.entrySet()) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(entry.getKey());
+            row.createCell(1).setCellValue(entry.getValue());
+            double percentage = (entry.getValue() * 100.0) / creadores.size();
+            row.createCell(2).setCellValue(String.format("%.1f%%", percentage));
+
+            // Aplicar estilo
+            for (int i = 0; i < 3; i++) {
+                row.getCell(i).setCellStyle(dataStyle);
+            }
+        }
+
+        // Ajustar ancho de columnas
+        for (int i = 0; i < 5; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        workbook.write(baos);
+        workbook.close();
+
+        return baos.toByteArray();
+    }
+
+    // 🛠️ MÉTODOS AUXILIARES PARA ESTILOS
+
+    // ✅ Método para crear celdas de header en PDF (iText)
+    private com.itextpdf.layout.element.Cell crearCeldaHeaderPdf(String text) {
+        com.itextpdf.layout.element.Cell cell = new com.itextpdf.layout.element.Cell();
+        cell.add(new Paragraph(text).setBold().setFontSize(10));
+        cell.setBackgroundColor(ColorConstants.LIGHT_GRAY);
+        cell.setTextAlignment(TextAlignment.CENTER);
+        return cell;
+    }
+
+    // ✅ Métodos para crear estilos en Excel (Apache POI)
+    private CellStyle crearEstiloHeader(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        style.setFont(font);
+        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        return style;
+    }
+
+    private CellStyle crearEstiloData(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        return style;
+    }
+
+    private CellStyle crearEstiloTitle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 16);
+        font.setColor(IndexedColors.DARK_BLUE.getIndex());
+        style.setFont(font);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        return style;
+    }
+}REPORTE DE PROYECTOS")
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFontSize(18)
                 .setBold();
@@ -121,14 +341,14 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         // Título principal
         Row titleRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0);
         titleCell.setCellValue("📊 REPORTE DE PROYECTOS");
         titleCell.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
 
         // Fecha
         Row fechaRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0);
         fechaCell.setCellValue("Fecha de generación: " + 
                 LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 4));
@@ -138,7 +358,7 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         // Estadísticas
         Row statsHeaderRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell statsHeaderCell = statsHeaderRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell statsHeaderCell = statsHeaderRow.createCell(0);
         statsHeaderCell.setCellValue("📈 ESTADÍSTICAS GENERALES");
         statsHeaderCell.setCellStyle(headerStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 4));
@@ -162,7 +382,7 @@ public class ReporteServicioImpl implements ReporteServicio {
         Row headerRow = sheet.createRow(rowNum++);
         String[] headers = {"ID", "Título", "Tecnologías", "Fecha Publicación", "Miembros"};
         for (int i = 0; i < headers.length; i++) {
-            org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i); // 🔧 USO EXPLÍCITO POI CELL
+            org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
             cell.setCellStyle(headerStyle);
         }
@@ -317,14 +537,14 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         // Título principal
         Row titleRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0);
         titleCell.setCellValue("👥 REPORTE DE CREADORES");
         titleCell.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
 
         // Fecha
         Row fechaRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0);
         fechaCell.setCellValue("Fecha de generación: " + 
                 LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 7));
@@ -334,7 +554,7 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         // Estadísticas
         Row statsHeaderRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell statsHeaderCell = statsHeaderRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell statsHeaderCell = statsHeaderRow.createCell(0);
         statsHeaderCell.setCellValue("📈 ESTADÍSTICAS GENERALES");
         statsHeaderCell.setCellStyle(headerStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 7));
@@ -348,7 +568,7 @@ public class ReporteServicioImpl implements ReporteServicio {
                 .collect(Collectors.groupingBy(Creador::getRol, Collectors.counting()));
 
         Row rolesHeaderRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell rolesHeaderCell = rolesHeaderRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell rolesHeaderCell = rolesHeaderRow.createCell(0);
         rolesHeaderCell.setCellValue("👨‍💼 DISTRIBUCIÓN POR ROLES");
         rolesHeaderCell.setCellStyle(headerStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 7));
@@ -368,7 +588,7 @@ public class ReporteServicioImpl implements ReporteServicio {
         Row headerRow = sheet.createRow(rowNum++);
         String[] headers = {"ID", "Nombres", "Apellidos", "Email", "Teléfono", "Rol", "Proyecto", "Fecha Vinculación"};
         for (int i = 0; i < headers.length; i++) {
-            org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i); // 🔧 USO EXPLÍCITO POI CELL
+            org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
             cell.setCellStyle(headerStyle);
         }
@@ -513,14 +733,14 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         // Título principal
         Row titleRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0);
         titleCell.setCellValue("📊 REPORTE: " + proyecto.getTitulo().toUpperCase());
         titleCell.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
 
         // Fecha
         Row fechaRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0);
         fechaCell.setCellValue("Fecha de generación: " + 
                 LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 4));
@@ -530,7 +750,7 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         // Información del proyecto
         Row infoHeaderRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell infoHeaderCell = infoHeaderRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell infoHeaderCell = infoHeaderRow.createCell(0);
         infoHeaderCell.setCellValue("📋 INFORMACIÓN DEL PROYECTO");
         infoHeaderCell.setCellStyle(headerStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 4));
@@ -557,7 +777,7 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         // Información del equipo
         Row equipoHeaderRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell equipoHeaderCell = equipoHeaderRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
+        org.apache.poi.ss.usermodel.Cell equipoHeaderCell = equipoHeaderRow.createCell(0);
         equipoHeaderCell.setCellValue("👥 EQUIPO ASIGNADO (" + equipo.size() + " miembros)");
         equipoHeaderCell.setCellStyle(headerStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 4));
@@ -571,7 +791,7 @@ public class ReporteServicioImpl implements ReporteServicio {
             Row headerRow = sheet.createRow(rowNum++);
             String[] headers = {"ID", "Nombres", "Apellidos", "Email", "Rol", "Fecha Vinculación"};
             for (int i = 0; i < headers.length; i++) {
-                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i); // 🔧 USO EXPLÍCITO POI CELL
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(headerStyle);
             }
@@ -618,226 +838,9 @@ public class ReporteServicioImpl implements ReporteServicio {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
-        // Título del reporte
-        Paragraph titulo = new Paragraph("📊 REPORTE GENERAL DEL SISTEMA")
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontSize(18)
-                .setBold();
-        document.add(titulo);
-
-        // Fecha de generación
-        Paragraph fecha = new Paragraph("Fecha de generación: " + 
-                LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontSize(10);
-        document.add(fecha);
-
-        // Espacio
-        document.add(new Paragraph("\n"));
-
-        // Estadísticas generales
-        Paragraph estadisticas = new Paragraph("📈 ESTADÍSTICAS GENERALES")
-                .setFontSize(14)
-                .setBold();
-        document.add(estadisticas);
-
-        document.add(new Paragraph("• Total de proyectos: " + proyectos.size()));
-        document.add(new Paragraph("• Total de creadores: " + creadores.size()));
-
-        long totalMiembros = proyectos.stream()
-                .mapToLong(p -> p.getCreadores() != null ? p.getCreadores().size() : 0)
-                .sum();
-        document.add(new Paragraph("• Total de asignaciones: " + totalMiembros));
-
-        double promedio = proyectos.isEmpty() ? 0 : (double) totalMiembros / proyectos.size();
-        document.add(new Paragraph("• Promedio de miembros por proyecto: " + String.format("%.1f", promedio)));
-
-        // Espacio
-        document.add(new Paragraph("\n"));
-
-        // Distribución por roles
-        Map<String, Long> roleStats = creadores.stream()
-                .collect(Collectors.groupingBy(Creador::getRol, Collectors.counting()));
-
-        Paragraph rolesTitle = new Paragraph("👨‍💼 DISTRIBUCIÓN POR ROLES")
-                .setFontSize(14)
-                .setBold();
-        document.add(rolesTitle);
-
-        Table rolesTable = new Table(UnitValue.createPercentArray(new float[]{3, 1, 1}))
-                .setWidth(UnitValue.createPercentValue(100));
-
-        rolesTable.addHeaderCell(crearCeldaHeaderPdf("Rol"));
-        rolesTable.addHeaderCell(crearCeldaHeaderPdf("Cantidad"));
-        rolesTable.addHeaderCell(crearCeldaHeaderPdf("Porcentaje"));
-
-        for (Map.Entry<String, Long> entry : roleStats.entrySet()) {
-            rolesTable.addCell(entry.getKey());
-            rolesTable.addCell(entry.getValue().toString());
-            double percentage = (entry.getValue() * 100.0) / creadores.size();
-            rolesTable.addCell(String.format("%.1f%%", percentage));
-        }
-
-        document.add(rolesTable);
-        document.close();
-
-        return baos.toByteArray();
-    }
-
-    // 📊 REPORTE GENERAL (EXCEL)
-    @Override
-    public byte[] generarReporteGeneralExcel() throws Exception {
-        List<Proyecto> proyectos = proyectoServicio.listarTodos();
-        List<Creador> creadores = creadorServicio.listarTodos();
-
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Reporte General");
-
-        CellStyle headerStyle = crearEstiloHeader(workbook);
-        CellStyle dataStyle = crearEstiloData(workbook);
-        CellStyle titleStyle = crearEstiloTitle(workbook);
-
-        int rowNum = 0;
-
-        // Título principal
-        Row titleRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell titleCell = titleRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
-        titleCell.setCellValue("📊 REPORTE GENERAL DEL SISTEMA");
-        titleCell.setCellStyle(titleStyle);
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
-
-        // Fecha
-        Row fechaRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell fechaCell = fechaRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
-        fechaCell.setCellValue("Fecha de generación: " + 
-                LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 4));
-
-        // Espacio
-        rowNum++;
-
-        // Estadísticas generales
-        Row generalHeaderRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell generalHeaderCell = generalHeaderRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
-        generalHeaderCell.setCellValue("📈 ESTADÍSTICAS GENERALES");
-        generalHeaderCell.setCellStyle(headerStyle);
-        sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 4));
-
-        // Datos estadísticos
-        String[][] stats = {
-            {"Total de proyectos:", String.valueOf(proyectos.size())},
-            {"Total de creadores:", String.valueOf(creadores.size())},
-            {"Total de asignaciones:", String.valueOf(proyectos.stream()
-                    .mapToLong(p -> p.getCreadores() != null ? p.getCreadores().size() : 0).sum())},
-            {"Promedio miembros/proyecto:", String.format("%.1f", 
-                    proyectos.isEmpty() ? 0 : 
-                    (double) proyectos.stream()
-                            .mapToLong(p -> p.getCreadores() != null ? p.getCreadores().size() : 0)
-                            .sum() / proyectos.size())}
-        };
-
-        for (String[] stat : stats) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(stat[0]);
-            row.createCell(1).setCellValue(stat[1]);
-        }
-
-        // Espacio
-        rowNum++;
-
-        // Distribución por roles
-        Map<String, Long> roleStats = creadores.stream()
-                .collect(Collectors.groupingBy(Creador::getRol, Collectors.counting()));
-
-        Row rolesHeaderRow = sheet.createRow(rowNum++);
-        org.apache.poi.ss.usermodel.Cell rolesHeaderCell = rolesHeaderRow.createCell(0); // 🔧 USO EXPLÍCITO POI CELL
-        rolesHeaderCell.setCellValue("👨‍💼 DISTRIBUCIÓN POR ROLES");
-        rolesHeaderCell.setCellStyle(headerStyle);
-        sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 4));
-
-        // Headers de roles
-        Row roleHeaderRow = sheet.createRow(rowNum++);
-        String[] roleHeaders = {"Rol", "Cantidad", "Porcentaje"};
-        for (int i = 0; i < roleHeaders.length; i++) {
-            org.apache.poi.ss.usermodel.Cell cell = roleHeaderRow.createCell(i); // 🔧 USO EXPLÍCITO POI CELL
-            cell.setCellValue(roleHeaders[i]);
-            cell.setCellStyle(headerStyle);
-        }
-
-        // Datos de roles
-        for (Map.Entry<String, Long> entry : roleStats.entrySet()) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(entry.getKey());
-            row.createCell(1).setCellValue(entry.getValue());
-            double percentage = (entry.getValue() * 100.0) / creadores.size();
-            row.createCell(2).setCellValue(String.format("%.1f%%", percentage));
-
-            // Aplicar estilo
-            for (int i = 0; i < 3; i++) {
-                row.getCell(i).setCellStyle(dataStyle);
-            }
-        }
-
-        // Ajustar ancho de columnas
-        for (int i = 0; i < 5; i++) {
-            sheet.autoSizeColumn(i);
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        workbook.write(baos);
-        workbook.close();
-
-        return baos.toByteArray();
-    }
-
-    // 🛠️ MÉTODOS AUXILIARES PARA ESTILOS
-
-    // ✅ Método para crear celdas de header en PDF (iText)
-    private PdfCell crearCeldaHeaderPdf(String text) {
-        PdfCell cell = new PdfCell();
-        cell.add(new Paragraph(text).setBold().setFontSize(10));
-        cell.setBackgroundColor(ColorConstants.LIGHT_GRAY);
-        cell.setTextAlignment(TextAlignment.CENTER);
-        return cell;
-    }
-
-    // ✅ Métodos para crear estilos en Excel (Apache POI)
-    private CellStyle crearEstiloHeader(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        font.setColor(IndexedColors.WHITE.getIndex());
-        style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        return style;
-    }
-
-    private CellStyle crearEstiloData(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        return style;
-    }
-
-    private CellStyle crearEstiloTitle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        font.setFontHeightInPoints((short) 16);
-        font.setColor(IndexedColors.DARK_BLUE.getIndex());
-        style.setFont(font);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        return style;
-    }
-}
+      // Título del reporte
+Paragraph titulo = new Paragraph("📊 REPORTE GENERAL DEL SISTEMA")
+        .setTextAlignment(TextAlignment.CENTER)
+        .setFontSize(18)
+        .setBold();
+document.add(titulo);
