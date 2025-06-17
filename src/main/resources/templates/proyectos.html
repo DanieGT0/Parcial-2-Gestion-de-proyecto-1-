@@ -674,11 +674,7 @@
           <small>Todos los proyectos</small>
         </a>
         
-        <a href="/reportes/proyectos/excel" class="btn-export btn-export-excel" title="Descargar reporte en Excel">
-          <i class="fas fa-file-excel"></i>
-          <span>Exportar Excel</span>
-          <small>Todos los proyectos</small>
-        </a>
+        
         
         <a href="/reportes/estadisticas/pdf" class="btn-export btn-export-stats" title="Reporte de estadísticas en PDF">
           <i class="fas fa-chart-line"></i>
@@ -686,11 +682,7 @@
           <small>Análisis general</small>
         </a>
         
-        <a href="/reportes/estadisticas/excel" class="btn-export btn-export-stats-excel" title="Reporte de estadísticas en Excel">
-          <i class="fas fa-chart-bar"></i>
-          <span>Estadísticas Excel</span>
-          <small>Análisis general</small>
-        </a>
+        
       </div>
     </div>
 
@@ -785,12 +777,7 @@
                   Descargar PDF
                 </a>
               </li>
-              <li>
-                <a class="dropdown-item" th:href="@{/reportes/proyecto/{id}/excel(id=${proyecto.id})}">
-                  <i class="fas fa-file-excel text-success me-2"></i>
-                  Descargar Excel
-                </a>
-              </li>
+              
             </ul>
           </div>
           
